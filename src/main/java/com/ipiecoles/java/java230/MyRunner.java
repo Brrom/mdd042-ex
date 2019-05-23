@@ -8,6 +8,7 @@ import com.ipiecoles.java.java230.model.Technicien;
 import com.ipiecoles.java.java230.repository.EmployeRepository;
 import com.ipiecoles.java.java230.repository.ManagerRepository;
 
+import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.slf4j.Logger;
@@ -22,7 +23,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.LocalDate;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -121,31 +122,67 @@ public class MyRunner implements CommandLineRunner {
 
         String[] commercialFields = ligneCommercial.split(",");
 
-        if (commercialFields.length != 7) {
+        if (commercialFields.length != NB_CHAMPS_COMMERCIAL) {
 
             throw new BatchException("La ligne ne contient pas " + NB_CHAMPS_COMMERCIAL + " éléments mais " + commercialFields.length);
 
-        } else if (!commercialFields[0].matches(REGEX_MATRICULE)) {
-
-            throw new BatchException("La chaîne ne respecte pas l'expression régulière ^[MTC][0-9]{5}$ ");
-
         }
 
+        if (!commercialFields[0].matches(REGEX_MATRICULE)) {
 
-        else {
+            throw new BatchException(commercialFields[0] + " La chaîne ne respecte pas l'expression régulière " + REGEX_MATRICULE);
 
-            Commercial c = new Commercial();
-            employes.add(c);
         }
 
         try {
-            LocalDateTime d = DateTimeFormat .forPattern("dd/MM/yyyy").parseLocalDate("")
 
-        } 
+            LocalDate d = DateTimeFormat.forPattern("dd/MM/yyyy").parseLocalDate(commercialFields[3]);
 
+        } catch (Exception e) {
 
+            throw new BatchException(commercialFields[3] + " ne respecte pas le format de date dd/MM/yyyy ");
 
-    }
+        }
+
+        try {
+
+            float salaire = Float.parseFloat(commercialFields[4]);
+
+        } catch (NumberFormatException e) {
+
+            throw new BatchException (commercialFields[4] + " n'est pas un nombre valide pour un salaire ");
+        }
+
+        try {
+
+            float chiffreAffaire = Float.parseFloat(commercialFields[5]);
+
+        } catch (NumberFormatException e) {
+
+            throw new BatchException ("Le chiffre d'affaire du commercial est incorrect : " + commercialFields[5]);
+        }
+
+        try {
+
+            float performance = Float.parseFloat(commercialFields[6]);
+
+        } catch (NumberFormatException e) {
+
+            throw new BatchException ("La performance du commercial est incorrecte : " + commercialFields[6]);
+        }
+
+        Commercial c = new Commercial();
+
+        c.setMatricule(commercialFields[0]);
+        c.setNom(commercialFields[1]);
+        c.setPrenom(commercialFields[2]);
+        c.setDateEmbauche(LocalDate.parse(commercialFields[3]));
+        c.setSalaire(Double.parseDouble(commercialFields[4]));
+        c.setCaAnnuel(Double.parseDouble(commercialFields[5]));
+        c.setPerformance(Integer.parseInt(commercialFields[6]));
+
+            employes.add(c);
+        }
 
     /**
      * Méthode qui crée un Manager à partir d'une ligne contenant les informations d'un manager et l'ajoute dans la liste globale des employés
@@ -155,19 +192,49 @@ public class MyRunner implements CommandLineRunner {
     private void processManager(String ligneManager) throws BatchException {
         //TODO
 
-        String[] managerFields = ligneManager.split(",");
+    String[] managerFields = ligneManager.split(",");
+
+        if (managerFields.length != NB_CHAMPS_MANAGER) {
+
+        throw new BatchException("La ligne ne contient pas " + NB_CHAMPS_MANAGER + " éléments mais " + managerFields.length);
+
+    }
 
         if (!managerFields[0].matches(REGEX_MATRICULE)) {
 
-            throw new BatchException("La chaîne ne respecte pas l'expression régulière ^[MTC][0-9]{5}$ ");
+        throw new BatchException(managerFields[0] + " La chaîne ne respecte pas l'expression régulière " + REGEX_MATRICULE);
 
-        } else {
+    }
+        LocalDate d = null;
+        try {
 
-            Manager m = new Manager();
-            employes.add(m);
-        }
+        d = DateTimeFormat.forPattern("dd/MM/yyyy").parseLocalDate(managerFields[3]);
+
+    } catch (Exception e) {
+
+        throw new BatchException(managerFields[3] + " ne respecte pas le format de date dd/MM/yyyy ");
+
     }
 
+        try {
+
+        float salaire = Float.parseFloat(managerFields[4]);
+
+    } catch (NumberFormatException e) {
+
+        throw new BatchException (managerFields[4] + " n'est pas un nombre valide pour un salaire ");
+    }
+
+    Manager m = new Manager();
+
+        m.setMatricule(managerFields[0]);
+        m.setNom(managerFields[1]);
+        m.setPrenom(managerFields[2]);
+        m.setDateEmbauche(d);
+        m.setSalaire(Double.parseDouble(managerFields[4]));
+
+            employes.add(m);
+}
 
     /**
      * Méthode qui crée un Technicien à partir d'une ligne contenant les informations d'un technicien et l'ajoute dans la liste globale des employés
@@ -177,19 +244,53 @@ public class MyRunner implements CommandLineRunner {
     private void processTechnicien(String ligneTechnicien) throws BatchException {
         //TODO
 
-        String[] technicienFields = ligneTechnicien.split(",");
+        String[] TechnicienFields = ligneTechnicien.split(",");
 
-        if (!technicienFields[0].matches(REGEX_MATRICULE)) {
-            throw new BatchException("La chaîne ne respecte pas l'expression régulière ^[MTC][0-9]{5}$ ");
+        if (TechnicienFields.length != NB_CHAMPS_TECHNICIEN) {
 
-        } else {
-
-            Technicien t = new Technicien();
-            employes.add(t);
+            throw new BatchException("La ligne ne contient pas " + NB_CHAMPS_TECHNICIEN + " éléments mais " + TechnicienFields.length);
 
         }
+
+        if (!TechnicienFields[0].matches(REGEX_MATRICULE)) {
+
+            throw new BatchException(TechnicienFields[0] + " La chaîne ne respecte pas l'expression régulière " + REGEX_MATRICULE);
+
+        }
+        LocalDate d = null;
+        try {
+
+            d = DateTimeFormat.forPattern("dd/MM/yyyy").parseLocalDate(TechnicienFields[3]);
+
+        } catch (Exception e) {
+
+            throw new BatchException(TechnicienFields[3] + " ne respecte pas le format de date dd/MM/yyyy ");
+
+        }
+
+        try {
+
+            float salaire = Float.parseFloat(TechnicienFields[4]);
+
+        } catch (NumberFormatException e) {
+
+            throw new BatchException (TechnicienFields[4] + " n'est pas un nombre valide pour un salaire ");
+        }
+
+
+        Technicien t = new Technicien();
+
+        t.setMatricule(TechnicienFields[0]);
+        t.setNom(TechnicienFields[1]);
+        t.setPrenom(TechnicienFields[2]);
+        t.setDateEmbauche(d);
+        t.setSalaire(Double.parseDouble(TechnicienFields[4]));
+
+        employes.add(t);
     }
 
     }
+
+
 
 
